@@ -38,7 +38,9 @@
  * @command ShowAllQuest
  * @text ShowAllQuest
  * @desc Show all quests
-  *================================================
+ * @arg CommonEventIfNoActiveQuest
+ * @type string
+ *================================================
  * @command ShowCompletedQuest
  * @text ShowCompletedQuest
  * @desc Show completed quests
@@ -95,44 +97,73 @@
 			if ("allQuest" in $gameSystem == false)
 			{
 				$gameSystem.allQuest = {};
+
+			}
+			if (questName in $gameSystem.allQuest == false)
+			{
 				$gameSystem.allQuest[questName] = {};
+			}
+			
 				$gameSystem.allQuest[questName]["CommonEvent"] = commonEventBind;
 				$gameSystem.allQuest[questName]["Status"] = "";
-				
-			}
 
 		});
 		
 		
 		
 		PluginManager.registerCommand(pluginName, "ShowAllQuest", args => {
+			
+			
 			iconComplete = '\\i[89]';
 			choices = []; params = []; 
 			$gameMessage.setChoices(choices, 0);
 			for (var q in $gameSystem.allQuest)
 			{
-			 if($gameSystem.allQuest[q]["Status"] == "Complete")
+			 if($gameSystem.allQuest[q] != null && $gameSystem.allQuest[q]["Status"] == "Complete")
 			 {
 			  choices.push(iconComplete+q);
 			 }
-			 else if($gameSystem.allQuest[q]["Status"] == "Unfinished")
+			 else if($gameSystem.allQuest[q] != null && $gameSystem.allQuest[q]["Status"] == "Unfinished")
 			 {
 			  choices.push(q);
 			 }
 			}
-			$gameMessage._choiceCancelType = -1;
-			params.push()
-			$gameMessage.setChoiceCallback(function(responseIndex) {
-			if (responseIndex >= 0) {$gameTemp.resultChoice = $gameMessage._choices[responseIndex]; } 
-			for (var q in $gameSystem.allQuest)
+			var countprop = 0;
+			
+			for (var p in $gameSystem.allQuest)
 			{
-			 if($gameTemp.resultChoice.indexOf(q) >= 0)
-			 {
-			  $gameTemp.reserveCommonEvent($gameSystem.allQuest[q]["CommonEvent"]);
-
-			 }
+				if ($gameSystem.allQuest[p]["Status"] != "")
+				{
+					countprop++;
+				}
+				
 			}
-			});
+			
+			if (countprop > 0)
+			{
+				$gameMessage._choiceCancelType = -1;
+				params.push()
+				$gameMessage.setChoiceCallback(function(responseIndex) {
+				if (responseIndex >= 0) {$gameTemp.resultChoice = $gameMessage._choices[responseIndex]; } 
+				for (var q in $gameSystem.allQuest)
+				{
+				 if($gameTemp.resultChoice.indexOf(q) >= 0 && $gameSystem.allQuest[q] != null)
+				 {
+				  $gameTemp.reserveCommonEvent($gameSystem.allQuest[q]["CommonEvent"]);
+
+				 }
+				}
+				});
+			}
+			else
+			{
+				if (args != null && args != "")
+				{
+					$gameTemp.reserveCommonEvent(args.CommonEventIfNoActiveQuest);
+				}
+				
+			}
+			
 			
 		});
 		
@@ -145,7 +176,7 @@
 
 			for (var q in $gameSystem.allQuest)
 			{
-			 if($gameSystem.allQuest[q]["Status"] == "Complete")
+			 if($gameSystem.allQuest[q] != null && $gameSystem.allQuest[q]["Status"] == "Complete")
 			 {
 			  choices.push(iconComplete+q);
 			 }
@@ -156,7 +187,7 @@
 			if (responseIndex >= 0) {$gameTemp.resultChoice = $gameMessage._choices[responseIndex]; } 
 			for (var q in $gameSystem.allQuest)
 			{
-			 if($gameTemp.resultChoice.indexOf(q) >= 0)
+			 if($gameTemp.resultChoice.indexOf(q) >= 0 && $gameSystem.allQuest[q] != null)
 			 {
 			  $gameTemp.reserveCommonEvent($gameSystem.allQuest[q]["CommonEvent"]);
 
@@ -175,10 +206,14 @@
 
 			for (var q in $gameSystem.allQuest)
 			{
-			 if($gameSystem.allQuest[q]["Status"] == "Unfinished")
-			 {
-			  choices.push(q);
-			 }
+				if ($gameSystem.allQuest[q] != null)
+				{
+					if($gameSystem.allQuest[q]["Status"] == "Unfinished")
+					 {
+					  choices.push(q);
+					 }
+				}
+			 
 			 
 			}
 			params.push()
@@ -198,12 +233,20 @@
 		
 		PluginManager.registerCommand(pluginName, "StartQuest", args => {
 			const questName = args.questName;
-			$gameSystem.allQuest[questName]["Status"] = "Unfinished";
+			if ($gameSystem.allQuest[questName] != null)
+			{
+				$gameSystem.allQuest[questName]["Status"] = "Unfinished";
+			}
+			
 		});
 		
 		PluginManager.registerCommand(pluginName, "FinishQuest", args => {
 			const questName = args.questName;
-			$gameSystem.allQuest[questName]["Status"] = "Complete";
+			if ($gameSystem.allQuest[questName] != null)
+			{
+				$gameSystem.allQuest[questName]["Status"] = "Complete";
+			}
+			
 		});
 		
 		
